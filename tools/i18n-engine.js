@@ -185,7 +185,7 @@
 
   // ---- DOM：文本节点、属性 ----
   const SKIP_TAGS = { SCRIPT: 1, STYLE: 1, CODE: 1, PRE: 1, KBD: 1, SAMP: 1, TEXTAREA: 1, NOSCRIPT: 1 };
-  const ATTRS = ['title', 'placeholder', 'aria-label', 'alt', 'value', 'content'];
+  const ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
 
   function inSkipped(el) {
     for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
@@ -205,6 +205,12 @@
 
   function attrs(el) {
     if (!el.getAttribute) return;
+    // <input type=button|submit|reset value="Save"> 的显示文字
+    const tag = el.tagName;
+    if ((tag === 'INPUT' && /^(button|submit|reset)$/i.test(el.type || '')) && el.value && LATIN.test(el.value) && !CJK.test(el.value)) {
+      const v = t(el.value);
+      if (v !== el.value) el.value = v;
+    }
     for (const a of ATTRS) {
       if (!el.hasAttribute(a)) continue;
       const v = el.getAttribute(a);
@@ -230,12 +236,6 @@
   function boot() {
     if (state.lang !== 'zh-CN') return;
     try { document.documentElement.lang = 'zh-CN'; } catch (e) {}
-    // 系统字体栈补上中文字体，免得 fallback 到不好看的
-    try {
-      const st = document.createElement('style');
-      st.textContent = ':lang(zh-CN){--td-cjk:"PingFang SC","Microsoft YaHei UI","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC","WenQuanYi Micro Hei",sans-serif}';
-      document.head.appendChild(st);
-    } catch (e) {}
     walk(document.body || document.documentElement);
 
     const mo = new MutationObserver((list) => {
