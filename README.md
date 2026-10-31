@@ -822,6 +822,24 @@ TwinDesk is better for everyone who sent a pull request:
 
 And thanks to everyone who reports problems and shares ideas in the [issues](https://github.com/InukaAsith/TwinDesk/issues).
 
+
+## 简体中文界面 / 简体中文
+
+这个分支把 TwinDesk 的界面汉化了：桌面端（Windows、Linux、macOS）与 Android 端默认显示简体中文，
+英文原文仍保留在源码里，随时可以切回。
+
+- 桌面端（Electron）：词典在 `tools/zh/*.json`，运行 `python3 tools/build-i18n.py` 生成
+  `shared/i18n.js`；各页面的 HTML 引入该脚本，翻译在 DOM 层完成（静态文本、动态生成的文本、
+  `title`/`placeholder`/`aria-label` 等属性都会替换，未收录的字符串保持英文）。
+  想回到英文界面：设置环境变量 `TWINDESK_LANG=en`（或给页面加 `?lang=en`）。
+- Android：`android/.../I18n.kt` 里的词典与 `Text()` 包装负责渲染时翻译，
+  `res/values-zh-rCN/strings.xml` 是系统可见的应用内字符串（快捷方式、无障碍服务）。
+- 翻译准则：TwinDesk、Mac、Windows、Linux、Android、ReZume、Mesh、Wi-Fi 直连、蓝牙等专有名词保持原样；
+  动态值（设备名、文件名、数字）不翻译。
+
+构建：`.github/workflows` 里的 Android / Windows / Linux / macOS 工作流都可以直接用
+Actions → Run workflow 触发，产物在 run 的 Artifacts 里。
+
 ## License
 
 TwinDesk is free software, licensed under the [GNU General Public License v3.0](LICENSE).

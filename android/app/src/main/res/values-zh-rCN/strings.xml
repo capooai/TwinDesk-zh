@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sc_adb_short">无线调试</string>
+    <string name="sc_adb_long">开启无线调试</string>
+    <string name="sc_screen_short">电脑屏幕</string>
+    <string name="sc_screen_long">显示电脑的屏幕</string>
+    <string name="input_service">TwinDesk：你电脑的鼠标和键盘</string>
+    <string name="input_service_desc">在没有无线调试时（例如通过蓝牙连接），让 TwinDesk 中已配对的电脑用它的鼠标和键盘在这台手机上点按、滚动和打字。TwinDesk 只执行那台电脑在你共享光标时发来的操作，不会读取你的屏幕。</string>
+</resources>
