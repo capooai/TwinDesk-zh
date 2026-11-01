@@ -68,6 +68,15 @@ jobs:
         with:
           keystore: ${{ secrets.ANDROID_KEYSTORE }}
 
+      # electron-builder's bundled fpm (the .deb packer) is an x86 binary: on arm64 it can't run
+      # ("cannot execute binary file"), so the arm64 job uses a native Ruby fpm instead.
+      - name: Native fpm (arm64)
+        if: matrix.arch == 'arm64'
+        run: |
+          sudo apt-get install -y ruby ruby-dev rpm
+          sudo gem install fpm --no-document
+          fpm --version
+
       - name: Install dependencies
         working-directory: linux
         run: npm install
@@ -76,6 +85,7 @@ jobs:
         working-directory: linux
         env:
           TD_ARCH: ${{ matrix.arch }}
+          USE_SYSTEM_FPM: ${{ matrix.arch == 'arm64' && 'true' || 'false' }}
         run: npm run dist
 
       - name: Show what was built
