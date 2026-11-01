@@ -1,7 +1,7 @@
 // TwinDesk — Copyright (C) 2026 inukaasith. GPL-3.0, see LICENSE.
 // Builds the Linux packages (`npm run dist`): the helper, a staging folder with the same
 // layout as the repo (linux/, shared/, linux-helper/bin/), then electron-builder → AppImage and
-// .deb (x64). Same approach as windows/installer/build.js: the layout is kept so
+// .deb (x64, or arm64 when TD_ARCH=arm64). Same approach as windows/installer/build.js: the layout is kept so
 // '../shared/protocol.js' and the helper path work unchanged; no asar, so the helper is a real file.
 // Run it on Linux (or in WSL) with the X11 dev packages installed. For a phone as the peer it also
 // carries adb (downloaded, scripts/fetch-adb.js) and the scrcpy server (mac/vendor/scrcpy-server)
@@ -16,6 +16,8 @@ const LIN = path.join(__dirname, '..');
 const ROOT = path.join(LIN, '..');
 const STAGE = path.join(LIN, 'dist', 'stage');
 const pkg = require(path.join(LIN, 'package.json'));
+// TD_ARCH=arm64: an arm64 AppImage and .deb (built on an arm64 host, see .github/workflows/build-linux.yml)
+const ARCH = process.env.TD_ARCH === 'arm64' ? 'arm64' : 'x64';
 const electronVersion = require(path.join(LIN, 'node_modules', 'electron', 'package.json')).version;
 
 const SKIP = new Set(['node_modules', 'dist', 'installer', 'test', 'package-lock.json']); // tests (mesh/test) stay out of the package
@@ -96,7 +98,7 @@ async function main() {
 
   console.log('Packaging…');
   await builder.build({
-    targets: builder.Platform.LINUX.createTarget(['AppImage', 'deb'], builder.Arch.x64),
+    targets: builder.Platform.LINUX.createTarget(['AppImage', 'deb'], builder.Arch[ARCH]),
     projectDir: LIN,
     config: {
       appId: 'org.macshare.linux',

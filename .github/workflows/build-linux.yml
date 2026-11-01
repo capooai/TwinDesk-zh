@@ -18,7 +18,18 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    # x64 and arm64: each on a runner of its own architecture, so the C helper (linux-helper) and
+    # the bundled adb are native. ARM64 / Raspberry Pi / Apple-silicon VMs take the arm64 one.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    name: build (${{ matrix.arch }})
 
     steps:
       # main unless another branch is asked for (ref), whichever branch the run was started from.
@@ -43,6 +54,16 @@ jobs:
             libxfixes-dev \
             libglib2.0-dev
 
+      # Google ships Linux platform-tools for x64 only, so the arm64 packages carry the
+      # distribution's own adb (AOSP, Apache-2.0) built for arm64 instead.
+      - name: Bundled adb (arm64)
+        if: matrix.arch == 'arm64'
+        run: |
+          sudo apt-get install -y adb
+          mkdir -p linux/vendor/adb
+          install -m 755 "$(command -v adb)" linux/vendor/adb/adb
+          file linux/vendor/adb/adb || true
+
       - uses: ./.github/actions/android-full
         with:
           keystore: ${{ secrets.ANDROID_KEYSTORE }}
@@ -53,12 +74,17 @@ jobs:
 
       - name: Build Linux packages
         working-directory: linux
+        env:
+          TD_ARCH: ${{ matrix.arch }}
         run: npm run dist
+
+      - name: Show what was built
+        run: ls -la linux/dist
 
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: twindesk-linux-x64
+          name: twindesk-linux-${{ matrix.arch }}
           path: linux/dist/TwinDesk-*
 
       # Straight onto the release, no download and re-upload.
